@@ -4,46 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zenchain NFT Minter</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
     body { font-family: Arial, Helvetica, sans-serif; max-width: 760px; margin: 28px auto; padding: 12px; }
-    button, input { padding: 10px; margin: 6px 0; border-radius: 6px; width: 100%; }
-    #status { margin-top: 12px; white-space: pre-wrap; font-weight: bold; }
-    .hidden { display: none; }
+    button, input { padding: 10px; margin: 6px 0; border-radius: 6px; }
+    #status { margin-top: 12px; white-space: pre-wrap; }
+    label { font-weight: 600; }
   </style>
 </head>
 <body>
   <h1>Zenchain NFT Minter (Demo)</h1>
-  <p id="walletAddress">Wallet not connected</p>
-  <button id="connectBtn">Connect Wallet</button>
 
-  <div id="minter" class="hidden">
-    <h2>Mint NFT</h2>
-    <label>Token Metadata URL (JSON or image URL):</label>
-    <input id="tokenURI" placeholder="https://.../metadata.json" />
+  <p>Wallet Address: <span id="walletAddress">Not connected</span></p>
+  <button id="connect">Connect Wallet</button>
 
-    <button id="mintBtn">Mint NFT</button>
-    <h3>Total Minted:</h3>
-    <p id="totalSupply">0</p>
+  <div style="margin-top:12px;">
+    <label>Token metadata URL (JSON or image URL):</label><br/>
+    <input id="tokenURI" placeholder="https://.../metadata.json" style="width:100%">
   </div>
+
+  <button id="mint">Mint NFT</button>
+  <p>Total Minted: <span id="totalSupply">0</span></p>
 
   <div id="status"></div>
 
+  <!-- Ethers.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+  <!-- Link to your script.js -->
   <script src="script.js"></script>
+
   <script>
-    // Automatically fetch total supply when the page loads
-    window.onload = async () => {
-      if (typeof window.ethereum !== "undefined") {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-        try {
-          const supply = await contract.totalSupply();
-          document.getElementById("totalSupply").innerText = supply.toString();
-        } catch (err) {
-          console.error("Error fetching total supply:", err);
-        }
-      }
-    };
+    // Attach buttons to JS functions
+    document.getElementById("connect").addEventListener("click", connectWallet);
+    document.getElementById("mint").addEventListener("click", mintNFT);
+
+    // Auto-load total supply on page load
+    window.onload = getTotalSupply;
   </script>
 </body>
 </html>
