@@ -1,144 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zenchain NFT Minter</title>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <style>
-body {
-    font-family: 'Arial', sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: #ffffff;
-}
-h1 {
-    text-align: center;
-    font-size: 2rem;
-    margin-bottom: 20px;
-    background: linear-gradient(90deg, #f7971e, #ffd200);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-button {
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    background: #f7971e;
-    color: #000;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-button:hover {
-    transform: scale(1.05);
-    background: #ffd200;
-}
-#status {
-    margin-top: 15px;
-    padding: 10px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 8px;
-    min-height: 50px;
-    transition: all 0.3s ease;
-}
-#wallet {
-    text-align: center;
-    margin-bottom: 20px;
-    font-weight: bold;
-}
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+        min-height: 100vh;
+        margin: 0;
+    }
+    h1 {
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    }
+    #wallet {
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+    input, button {
+        padding: 12px 20px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: none;
+        font-size: 1rem;
+    }
+    input {
+        width: 300px;
+        max-width: 80%;
+    }
+    button {
+        background: #fff;
+        color: #2575fc;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    button:hover {
+        background: #2575fc;
+        color: #fff;
+        transform: scale(1.05);
+    }
+    #status {
+        margin-top: 20px;
+        min-height: 50px;
+        text-align: center;
+        word-wrap: break-word;
+    }
 </style>
+
+<!-- Load ethers.js first -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 </head>
 <body>
+
 <h1>Zenchain NFT Minter</h1>
-<p id="wallet">Wallet not connected</p>
-<div style="text-align:center;">
-<button id="connect">Connect Wallet</button>
-<button id="mint">Mint NFT</button>
-</div>
-<div id="status">Status: Ready</div>
-
-<!-- Load ethers.js -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-
-<script>
-// ----- CONFIG -----
-const CONTRACT_ADDRESS = "0x107E2C6dd34C883161c2f1F619e651A5F1b4981F"; // your deployed ZenNFT contract
-const CONTRACT_ABI = [
-  {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
-  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
-];
-
-// Preloaded NFT metadata URLs (4 images)
-const metadataList = [
-  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/1.json",
-  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/2.json",
-  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/3.json",
-  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/4.json"
-];
-let currentIndex = 0;
-
-// ----- STATE -----
-let provider, signer, contract;
-
-// ----- FUNCTIONS -----
-async function connect() {
-    const status = document.getElementById('status');
-    try {
-        if (!window.ethereum) {
-            status.innerText = "MetaMask not detected. Install MetaMask and reload.";
-            return;
-        }
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const addr = await signer.getAddress();
-        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-        document.getElementById('wallet').innerText = `Connected: ${addr}`;
-        status.innerText = "Wallet connected. Ready to mint NFTs on Zenchain testnet.";
-    } catch (err) {
-        status.innerText = "Connection error: " + (err?.message || err);
-    }
-}
-
-async function mint() {
-    const status = document.getElementById('status');
-    if (!contract) {
-        status.innerText = "Please connect wallet first.";
-        return;
-    }
-    if (currentIndex >= metadataList.length) {
-        status.innerText = "All NFTs minted!";
-        return;
-    }
-    const uri = metadataList[currentIndex];
-    try {
-        status.innerText = `Minting NFT #${currentIndex+1}... Confirm MetaMask.`;
-        const tx = await contract.mint(uri);
-        status.innerText = `Transaction sent. Waiting for confirmation...\nTx Hash: ${tx.hash}`;
-        const receipt = await tx.wait();
-        let tokenId = null;
-        if (receipt && receipt.events) {
-            for (const e of receipt.events) {
-                if (e.event === "Transfer" && e.args && e.args.tokenId) {
-                    tokenId = e.args.tokenId.toString();
-                    break;
-                }
-            }
-        }
-        currentIndex++;
-        status.innerText = `Mint confirmed!\nNFT #${currentIndex} minted.\nTx: ${tx.hash}` + (tokenId ? `\nToken ID: ${tokenId}` : "");
-    } catch (err) {
-        console.error(err);
-        status.innerText = "Error: " + (err?.message || err);
-    }
-}
-
-// ----- EVENT LISTENERS -----
-document.getElementById('connect').addEventListener('click', connect);
-document.getElementById('mint').addEventListener('click', mint);
-</script>
-</body>
-</html>
+<div id="wallet">Not connected</div>
+<button id="connect">Connect Wallet</butt
