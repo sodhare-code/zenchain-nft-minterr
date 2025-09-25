@@ -1,0 +1,16 @@
+# Zenchain NFT Minter
+
+🚀 A minimal dApp to mint NFTs on the Zenchain testnet.  
+Includes a Solidity ERC-721 contract and a simple frontend that connects with MetaMask.  
+
+---
+
+## ✨ Features
+- ERC-721 standard** using OpenZeppelin libraries.
+- Mint function**: anyone can call `mint(tokenURI)` to mint an NFT to their wallet.
+- Frontend: static HTML + Ethers.js → no build tools, works instantly in any browser.
+- MetaMask integration**: connect wallet, confirm transactions, see minted NFT details.
+
+---
+
+## 📂 Project Structure
