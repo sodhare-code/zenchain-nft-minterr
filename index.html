@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenchain NFT Minter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Zenchain NFT Minter 🚀</h1>
+    <button id="connectBtn">Connect Wallet</button>
+
+    <div id="minter" style="display:none;">
+      <input type="text" id="nftName" placeholder="NFT Name">
+      <input type="text" id="nftDesc" placeholder="NFT Description">
+      <input type="text" id="nftImg" placeholder="Image URL">
+      <button id="mintBtn">Mint NFT</button>
+    </div>
+
+    <p id="status"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
