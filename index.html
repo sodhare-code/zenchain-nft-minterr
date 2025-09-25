@@ -1,125 +1,121 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>Zenchain NFT Minter (Demo)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      max-width: 760px;
-      margin: 28px auto;
-      padding: 12px;
-      background: #f2f2f2;
-      color: #333;
-    }
-    h1 { text-align: center; color: #2b2b8d; }
-    button, input {
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    button {
-      cursor: pointer;
-      background-color: #2b2b8d;
-      color: white;
-      border: none;
-    }
-    button:hover { background-color: #1a1a6e; }
-    #status { margin-top: 12px; white-space: pre-wrap; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
-    label { font-weight: 600; }
-    .section { margin-top: 20px; }
-  </style>
+<meta charset="utf-8"/>
+<title>Zenchain NFT Minter</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+body {
+  font-family: 'Arial', sans-serif;
+  margin:0; padding:0;
+  background: linear-gradient(135deg,#6b73ff,#000dff);
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+}
+.container{
+  background: rgba(0,0,0,0.5);
+  padding:30px;
+  border-radius:20px;
+  margin-top:40px;
+  text-align:center;
+  max-width:500px;
+  width:90%;
+}
+h1{
+  margin-bottom:20px;
+}
+button{
+  background:#ffdd57;
+  color:#000;
+  border:none;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:10px 0;
+  transition: transform 0.2s;
+}
+button:hover{
+  transform: scale(1.05);
+}
+input{
+  padding:10px;
+  width:100%;
+  border-radius:8px;
+  border:none;
+  margin:6px 0;
+}
+#status{
+  margin-top:15px;
+  white-space:pre-wrap;
+}
+#totalMinted{
+  font-size:20px;
+  margin-top:10px;
+  font-weight:bold;
+}
+</style>
 </head>
 <body>
-  <h1>Zenchain NFT Minter (Demo)</h1>
-  <p id="acc">Not connected</p>
-  <button id="connect">Connect Wallet</button>
+<div class="container">
+<h1>Zenchain NFT Minter</h1>
+<p id="acc">Not connected</p>
+<button id="connect">Connect Wallet</button>
+<div>
+  <input id="tokenURI" placeholder="Token metadata URL (auto-filled)" />
+</div>
+<button id="mint">Mint NFT</button>
+<div id="status"></div>
+<div id="totalMinted">Total Minted: 0</div>
+</div>
 
-  <div class="section">
-    <label>Token metadata URL (auto-selected):</label><br/>
-    <input id="tokenURI" placeholder="https://.../metadata.json" style="width:100%" readonly/>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+<script>
+const CONTRACT_ADDRESS = "0xYOUR_DEPLOYED_CONTRACT_ADDRESS"; // replace this
+const CONTRACT_ABI = [
+  {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
+];
 
-  <button id="mint">Mint NFT</button>
+let provider, signer, contract;
+let currentNFT = 1;
 
-  <div class="section">
-    <p>Total Minted: <span id="totalMinted">0</span></p>
-    <div id="status"></div>
-  </div>
+async function connect() {
+  const status = document.getElementById('status');
+  try {
+    if (!window.ethereum) { status.innerText='MetaMask not detected!'; return; }
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const addr = await signer.getAddress();
+    document.getElementById('acc').innerText = 'Connected: '+addr;
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    document.getElementById('status').innerText='Connected! MetaMask on Zenchain testnet.';
+    document.getElementById('tokenURI').value = `https://raw.githubusercontent.com/hare-sod/zenchain-nft-minter/main/metadata/${currentNFT}.json`;
+  } catch(e){ status.innerText='Error: '+e.message; }
+}
 
-  <!-- Ethers v5 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script>
-    // ------------------ CONFIG ------------------
-    const CONTRACT_ADDRESS = "0x107E2C6dd34C883161c2f1F619e651A5F1b4981F"; // your ZenNFT deployed address
-    const CONTRACT_ABI = [
-      {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
-      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
-    ];
+async function mint() {
+  const status = document.getElementById('status');
+  try{
+    if(!contract){ status.innerText='Connect your wallet first!'; return; }
+    const uri = document.getElementById('tokenURI').value.trim();
+    status.innerText='Sending transaction... Confirm in MetaMask';
+    const tx = await contract.mint(uri);
+    await tx.wait();
+    status.innerText='Mint confirmed! Tx: '+tx.hash;
+    document.getElementById('totalMinted').innerText='Total Minted: '+currentNFT;
+    currentNFT++;
+    if(currentNFT>10) currentNFT=1; // cycle back
+    document.getElementById('tokenURI').value = `https://raw.githubusercontent.com/hare-sod/zenchain-nft-minter/main/metadata/${currentNFT}.json`;
+  } catch(e){ status.innerText='Error: '+e.message; console.error(e); }
+}
 
-    const BASE_METADATA_URL = "https://raw.githubusercontent.com/hare-sod/zenchain-nft-minter/main/metadata/";
-    const TOTAL_NFTS = 10; // total pre-hosted JSON files
-    let provider, signer, contract, totalMinted = 0;
-
-    async function connect() {
-      const status = document.getElementById('status');
-      try {
-        if (!window.ethereum) {
-          status.innerText = 'MetaMask not detected. Install MetaMask and reload.';
-          return;
-        }
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const addr = await signer.getAddress();
-        document.getElementById('acc').innerText = 'Connected: ' + addr;
-        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-        status.innerText = 'Connected. Make sure MetaMask is on the Zenchain testnet.';
-      } catch (err) {
-        status.innerText = 'Connection error: ' + (err?.message || err);
-      }
-    }
-
-    async function mint() {
-      const status = document.getElementById('status');
-      const tokenInput = document.getElementById('tokenURI');
-      if (!contract) { status.innerText = 'Please connect your wallet first.'; return; }
-
-      const nextId = totalMinted + 1;
-      if (nextId > TOTAL_NFTS) { status.innerText = 'All NFTs have been minted!'; return; }
-      const metadataURL = BASE_METADATA_URL + nextId + ".json";
-      tokenInput.value = metadataURL;
-
-      try {
-        status.innerText = `Minting NFT #${nextId}...\nConfirm transaction in MetaMask.`;
-        const tx = await contract.mint(metadataURL);
-        status.innerText += `\nTransaction sent. Tx hash: ${tx.hash}`;
-        const receipt = await tx.wait();
-
-        let tokenId = null;
-        if (receipt && receipt.events) {
-          for (const e of receipt.events) {
-            if (e.event === 'Transfer' && e.args && e.args.tokenId) {
-              tokenId = e.args.tokenId.toString();
-              break;
-            }
-          }
-        }
-
-        totalMinted++;
-        document.getElementById('totalMinted').innerText = totalMinted;
-        status.innerText += `\nMint confirmed!\nToken ID: ${tokenId}`;
-      } catch (err) {
-        console.error(err);
-        status.innerText = 'Error: ' + (err?.message || err);
-      }
-    }
-
-    document.getElementById('connect').addEventListener('click', connect);
-    document.getElementById('mint').addEventListener('click', mint);
-  </script>
+document.getElementById('connect').addEventListener('click', connect);
+document.getElementById('mint').addEventListener('click', mint);
+</script>
 </body>
 </html>
