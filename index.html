@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Zenchain NFT Minter (Automatic)</title>
+  <title>Zenchain NFT Minter (Demo)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <style>
     body {
@@ -10,28 +10,51 @@
       max-width: 760px;
       margin: 28px auto;
       padding: 12px;
-      background: #f5f5f5;
+      background: #f2f2f2;
       color: #333;
     }
-    h1 { text-align: center; color: #1f2937; }
-    button { padding: 10px 16px; margin: 6px 0; border-radius: 6px; cursor: pointer; background: #4f46e5; color: white; border: none; font-size: 16px; }
-    button:hover { background: #4338ca; }
-    #status { margin-top: 12px; white-space: pre-wrap; }
-    #acc { font-weight: 600; margin-bottom: 12px; }
+    h1 { text-align: center; color: #2b2b8d; }
+    button, input {
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+      background-color: #2b2b8d;
+      color: white;
+      border: none;
+    }
+    button:hover { background-color: #1a1a6e; }
+    #status { margin-top: 12px; white-space: pre-wrap; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    label { font-weight: 600; }
+    .section { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h1>Zenchain NFT Minter (Automatic)</h1>
+  <h1>Zenchain NFT Minter (Demo)</h1>
   <p id="acc">Not connected</p>
   <button id="connect">Connect Wallet</button>
-  <button id="mint">Mint NFT</button>
-  <p>Total Minted: <span id="totalMinted">0</span></p>
-  <div id="status"></div>
 
+  <div class="section">
+    <label>Token metadata URL (auto-selected):</label><br/>
+    <input id="tokenURI" placeholder="https://.../metadata.json" style="width:100%" readonly/>
+  </div>
+
+  <button id="mint">Mint NFT</button>
+
+  <div class="section">
+    <p>Total Minted: <span id="totalMinted">0</span></p>
+    <div id="status"></div>
+  </div>
+
+  <!-- Ethers v5 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <script>
     // ------------------ CONFIG ------------------
-    const CONTRACT_ADDRESS = "REPLACE_WITH_DEPLOYED_CONTRACT_ADDRESS"; // your ZenNFT deployed address
+    const CONTRACT_ADDRESS = "0x107E2C6dd34C883161c2f1F619e651A5F1b4981F"; // your ZenNFT deployed address
     const CONTRACT_ABI = [
       {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
       {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
@@ -62,12 +85,13 @@
 
     async function mint() {
       const status = document.getElementById('status');
+      const tokenInput = document.getElementById('tokenURI');
       if (!contract) { status.innerText = 'Please connect your wallet first.'; return; }
 
-      // Pick the next metadata file automatically
       const nextId = totalMinted + 1;
       if (nextId > TOTAL_NFTS) { status.innerText = 'All NFTs have been minted!'; return; }
       const metadataURL = BASE_METADATA_URL + nextId + ".json";
+      tokenInput.value = metadataURL;
 
       try {
         status.innerText = `Minting NFT #${nextId}...\nConfirm transaction in MetaMask.`;
