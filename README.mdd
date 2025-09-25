@@ -1,16 +1,30 @@
 # Zenchain NFT Minter
 
-🚀 A minimal dApp to mint NFTs on the Zenchain testnet.  
-Includes a Solidity ERC-721 contract and a simple frontend that connects with MetaMask.  
+A minimal NFT minter dApp for Zenchain.  
+Includes a simple ERC-721 contract (contracts/ZenNFT.sol) and a static frontend (index.html) that connects with MetaMask.
 
----
+## What it does
+- Allows a user to call mint(tokenURI) to mint an ERC-721 NFT to their address.
+- Shows the total number of NFTs minted via totalSupply().
+- Frontend is static (no build step). After deploying the contract, you only need to update the contract address in script.js.
 
-## ✨ Features
-- ERC-721 standard** using OpenZeppelin libraries.
-- Mint function**: anyone can call `mint(tokenURI)` to mint an NFT to their wallet.
-- Frontend: static HTML + Ethers.js → no build tools, works instantly in any browser.
-- MetaMask integration**: connect wallet, confirm transactions, see minted NFT details.
+## Files
+- contracts/ZenNFT.sol → The Solidity contract.
+- index.html → Frontend interface for minting NFTs.
+- script.js → Handles MetaMask connection and contract interactions.
 
----
+## Deployment (Optional but recommended)
+1. Open https://remix.ethereum.org.
+2. Create ZenNFT.sol under contracts/ and paste the contract code.
+3. Compile with Solidity 0.8.19.
+4. Connect MetaMask to Zenchain testnet (RPC/Chain ID from Zenchain docs/community).
+5. Deploy the contract and copy the deployed address.
+6. Update CONTRACT_ADDRESS in script.js with the deployed contract address.
 
-## 📂 Project Structure
+## Run the frontend
+- Open index.html locally in a browser or publish via GitHub Pages:
+  1. Repository → Settings → Pages → Source → main branch → / (root) → Save.
+  2. Wait a minute. Your frontend will be live at:
+     ```
+     https://sodhare.github.io/zenchain-nft-minterr
+     ```
