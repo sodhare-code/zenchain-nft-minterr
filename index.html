@@ -4,24 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zenchain NFT Minter</title>
-  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 760px; margin: 28px auto; padding: 12px; }
+    button, input { padding: 10px; margin: 6px 0; border-radius: 6px; width: 100%; }
+    #status { margin-top: 12px; white-space: pre-wrap; font-weight: bold; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Zenchain NFT Minter 🚀</h1>
-    <button id="connectBtn">Connect Wallet</button>
+  <h1>Zenchain NFT Minter (Demo)</h1>
+  <p id="walletAddress">Wallet not connected</p>
+  <button id="connectBtn">Connect Wallet</button>
 
-    <div id="minter" style="display:none;">
-      <input type="text" id="nftName" placeholder="NFT Name">
-      <input type="text" id="nftDesc" placeholder="NFT Description">
-      <input type="text" id="nftImg" placeholder="Image URL">
-      <button id="mintBtn">Mint NFT</button>
-    </div>
+  <div id="minter" class="hidden">
+    <h2>Mint NFT</h2>
+    <label>Token Metadata URL (JSON or image URL):</label>
+    <input id="tokenURI" placeholder="https://.../metadata.json" />
 
-    <p id="status"></p>
+    <button id="mintBtn">Mint NFT</button>
+    <h3>Total Minted:</h3>
+    <p id="totalSupply">0</p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <div id="status"></div>
+
   <script src="script.js"></script>
+  <script>
+    // Automatically fetch total supply when the page loads
+    window.onload = async () => {
+      if (typeof window.ethereum !== "undefined") {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        try {
+          const supply = await contract.totalSupply();
+          document.getElementById("totalSupply").innerText = supply.toString();
+        } catch (err) {
+          console.error("Error fetching total supply:", err);
+        }
+      }
+    };
+  </script>
 </body>
 </html>
