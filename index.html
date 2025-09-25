@@ -1,227 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Zenchain NFT Minter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1f1f2e, #2b2b3d);
-      color: #fff;
-      overflow-x: hidden;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 20px;
-      background: rgba(0,0,0,0.7);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      text-align: center;
-      animation: fadeIn 1s ease forwards;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      background: linear-gradient(90deg, #6a00f4, #00ffd5);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: slideIn 1s ease forwards;
-    }
-
-    button, input {
-      padding: 12px 20px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    button {
-      background: linear-gradient(90deg, #6a00f4, #00ffd5);
-      color: #fff;
-      cursor: pointer;
-    }
-
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 5px 15px rgba(0,255,213,0.5);
-    }
-
-    input {
-      width: 80%;
-      border: 2px solid #6a00f4;
-      background: rgba(255,255,255,0.05);
-      color: #fff;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #00ffd5;
-      box-shadow: 0 0 10px rgba(0,255,213,0.5);
-    }
-
-    #status {
-      margin-top: 15px;
-      min-height: 50px;
-      font-weight: 600;
-      animation: fadeIn 1s ease forwards;
-    }
-
-    #nftPreview {
-      margin-top: 20px;
-      max-width: 250px;
-      border-radius: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    #nftPreview:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(0,255,213,0.5);
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-50px);}
-      to { opacity: 1; transform: translateX(0);}
-    }
-
-    /* Particle background */
-    #particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      pointer-events: none;
-    }
-  </style>
+<meta charset="utf-8"/>
+<title>Zenchain NFT Minter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #ffffff;
+}
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #f7971e, #ffd200);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background: #f7971e;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+button:hover {
+    transform: scale(1.05);
+    background: #ffd200;
+}
+#status {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    min-height: 50px;
+    transition: all 0.3s ease;
+}
+#wallet {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+</style>
 </head>
 <body>
-  <canvas id="particles"></canvas>
-  <div class="container">
-    <h1>Zenchain NFT Minter</h1>
-    <p id="acc">Not connected</p>
-    <button id="connect">Connect Wallet</button>
-    <div>
-      <input id="tokenURI" placeholder="Paste metadata URL here" />
-    </div>
-    <button id="mint">Mint NFT</button>
-    <div id="status"></div>
-    <img id="nftPreview" src="" alt="" style="display:none;" />
-  </div>
+<h1>Zenchain NFT Minter</h1>
+<p id="wallet">Wallet not connected</p>
+<div style="text-align:center;">
+<button id="connect">Connect Wallet</button>
+<button id="mint">Mint NFT</button>
+</div>
+<div id="status">Status: Ready</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script>
-    const CONTRACT_ADDRESS = "REPLACE_WITH_DEPLOYED_CONTRACT_ADDRESS";
-    const CONTRACT_ABI = [
-      {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
-      {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
-    ];
+<!-- Load ethers.js -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 
-    let provider, signer, contract;
+<script>
+// ----- CONFIG -----
+const CONTRACT_ADDRESS = "0x107E2C6dd34C883161c2f1F619e651A5F1b4981F"; // your deployed ZenNFT contract
+const CONTRACT_ABI = [
+  {"inputs":[{"internalType":"string","name":"uri","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+  {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"}
+];
 
-    async function connect() {
-      const status = document.getElementById('status');
-      try {
+// Preloaded NFT metadata URLs (4 images)
+const metadataList = [
+  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/1.json",
+  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/2.json",
+  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/3.json",
+  "https://raw.githubusercontent.com/sodhare-code/zenchain-nft-minter/main/metadata/4.json"
+];
+let currentIndex = 0;
+
+// ----- STATE -----
+let provider, signer, contract;
+
+// ----- FUNCTIONS -----
+async function connect() {
+    const status = document.getElementById('status');
+    try {
         if (!window.ethereum) {
-          status.innerText = 'MetaMask not detected. Install and reload.';
-          return;
+            status.innerText = "MetaMask not detected. Install MetaMask and reload.";
+            return;
         }
         provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         const addr = await signer.getAddress();
-        document.getElementById('acc').innerText = 'Connected: ' + addr;
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-        status.innerText = 'Wallet connected. Make sure MetaMask is on Zenchain testnet.';
-      } catch(err) {
-        status.innerText = 'Connection error: ' + (err?.message || err);
-      }
+        document.getElementById('wallet').innerText = `Connected: ${addr}`;
+        status.innerText = "Wallet connected. Ready to mint NFTs on Zenchain testnet.";
+    } catch (err) {
+        status.innerText = "Connection error: " + (err?.message || err);
     }
+}
 
-    async function mint() {
-      const status = document.getElementById('status');
-      const nftPreview = document.getElementById('nftPreview');
-      try {
-        if (!contract) { status.innerText = 'Connect wallet first.'; return; }
-        const uri = document.getElementById('tokenURI').value.trim();
-        if (!uri) { status.innerText = 'Enter token metadata URL.'; return; }
-
-        // Preview NFT image
-        try {
-          const metadata = await fetch(uri).then(res => res.json());
-          if(metadata.image) {
-            nftPreview.src = metadata.image;
-            nftPreview.style.display = 'block';
-          }
-        } catch(e) { console.log('Preview failed', e); }
-
-        status.innerText = 'Sending transaction... Confirm in MetaMask.';
+async function mint() {
+    const status = document.getElementById('status');
+    if (!contract) {
+        status.innerText = "Please connect wallet first.";
+        return;
+    }
+    if (currentIndex >= metadataList.length) {
+        status.innerText = "All NFTs minted!";
+        return;
+    }
+    const uri = metadataList[currentIndex];
+    try {
+        status.innerText = `Minting NFT #${currentIndex+1}... Confirm MetaMask.`;
         const tx = await contract.mint(uri);
-        status.innerText = 'Transaction sent. Waiting confirmation...\nTx hash: ' + tx.hash;
+        status.innerText = `Transaction sent. Waiting for confirmation...\nTx Hash: ${tx.hash}`;
         const receipt = await tx.wait();
-
         let tokenId = null;
         if (receipt && receipt.events) {
-          for (const e of receipt.events) {
-            if (e.event === 'Transfer' && e.args && e.args.tokenId) {
-              tokenId = e.args.tokenId.toString();
-              break;
+            for (const e of receipt.events) {
+                if (e.event === "Transfer" && e.args && e.args.tokenId) {
+                    tokenId = e.args.tokenId.toString();
+                    break;
+                }
             }
-          }
         }
-        status.innerText = 'Mint confirmed!\nTx: ' + tx.hash + (tokenId ? '\nToken ID: ' + tokenId : '');
-      } catch(err) {
+        currentIndex++;
+        status.innerText = `Mint confirmed!\nNFT #${currentIndex} minted.\nTx: ${tx.hash}` + (tokenId ? `\nToken ID: ${tokenId}` : "");
+    } catch (err) {
         console.error(err);
-        status.innerText = 'Error: ' + (err?.message || err);
-      }
+        status.innerText = "Error: " + (err?.message || err);
     }
+}
 
-    document.getElementById('connect').addEventListener('click', connect);
-    document.getElementById('mint').addEventListener('click', mint);
-
-    // Simple particle background
-    const canvas = document.getElementById('particles');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    function initParticles() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      particles = [];
-      for(let i=0;i<100;i++){
-        particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+1, dx:(Math.random()-0.5)/2, dy:(Math.random()-0.5)/2});
-      }
-    }
-    function drawParticles() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      particles.forEach(p=>{
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-        ctx.fillStyle = 'rgba(106,0,244,0.7)';
-        ctx.fill();
-        p.x += p.dx; p.y += p.dy;
-        if(p.x<0||p.x>canvas.width) p.dx*=-1;
-        if(p.y<0||p.y>canvas.height) p.dy*=-1;
-      });
-      requestAnimationFrame(drawParticles);
-    }
-    window.addEventListener('resize', initParticles);
-    initParticles(); drawParticles();
-  </script>
+// ----- EVENT LISTENERS -----
+document.getElementById('connect').addEventListener('click', connect);
+document.getElementById('mint').addEventListener('click', mint);
+</script>
 </body>
 </html>
