@@ -1,0 +1,9 @@
+{
+  "name": "Zenchain Test NFT",
+  "description": "A test NFT minted on the Zenchain testnet.",
+  "image": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Placeholder_view_vector.svg",
+  "attributes": [
+    { "trait_type": "Rarity", "value": "Common" },
+    { "trait_type": "Edition", "value": 1 }
+  ]
+}
